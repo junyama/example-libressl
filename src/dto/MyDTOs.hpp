@@ -29,6 +29,33 @@ class MessageDto : public oatpp::DTO {
   
 };
 
+class ServerConfigObj : public oatpp::DTO {
+
+  DTO_INIT(ServerConfigObj, DTO /* extends */)
+
+  DTO_FIELD(Boolean, saveImage);
+};
+
+class BoundingBoxObj : public oatpp::DTO {
+
+  DTO_INIT(BoundingBoxObj, DTO /* extends */)
+
+  DTO_FIELD(Int32, sex);
+  DTO_FIELD(Int32, score);
+  DTO_FIELD(Int32, top);
+  DTO_FIELD(Int32, left);
+  DTO_FIELD(Int32, height);
+  DTO_FIELD(Int32, width);
+};
+
+class ImgBoundingBoxObj : public oatpp::DTO {
+
+  DTO_INIT(ImgBoundingBoxObj, DTO /* extends */)
+
+  DTO_FIELD(String, img);
+  DTO_FIELD(List<Object<BoundingBoxObj>>, boxList); 
+};
+
 #include OATPP_CODEGEN_END(DTO)
 
 #endif /* MyDTOs_hpp */

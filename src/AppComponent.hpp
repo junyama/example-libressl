@@ -73,6 +73,9 @@ public:
     return objectMapper;
   }());
   
+   /** 
+    *  Create client secure connection provider
+    */
   OATPP_CREATE_COMPONENT(std::shared_ptr<oatpp::network::ClientConnectionProvider>, sslClientConnectionProvider) ("clientConnectionProvider", [] {
     auto config = oatpp::libressl::Config::createShared();
     tls_config_insecure_noverifycert(config->getTLSConfig());

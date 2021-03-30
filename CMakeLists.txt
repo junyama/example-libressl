@@ -12,6 +12,9 @@ add_library(${project_name}-lib
         src/controller/MyController.cpp
         src/controller/MyController.hpp
         src/dto/MyDTOs.hpp
+        src/halcon/Classifyer.hpp
+        src/halcon/Classifyer.cpp
+        src/halcon/MyDictionary.cpp
 )
 
 target_include_directories(${project_name}-lib PUBLIC src)
@@ -19,7 +22,7 @@ target_include_directories(${project_name}-lib PUBLIC src)
 ## link libs
 
 find_package(oatpp          1.2.5 REQUIRED)
-find_package(oatpp-libressl 1.2.5 REQUIRED)
+find_package(oatpp-libressl  REQUIRED)
 
 include(FindPkgConfig) # <-- include pkg-config needed by FindLibreSSL.cmake script
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake") # <-- use FindLibreSSL.cmake in /cmake folder
