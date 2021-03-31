@@ -5,7 +5,7 @@
 #define SERVER_CONF_FILE_PATH "/home/xavier/github/example-libressl/conf.d/server.json"
 #define IMAGE_FILE_PATH "/home/xavier/github/example-libressl/image/"
 
-#include "client/MyApiClient.hpp"
+#include "client/MySecureApiClient.hpp"
 #include "dto/MyDTOs.hpp"
 
 #include "oatpp/web/client/RequestExecutor.hpp"
@@ -48,7 +48,7 @@ private:
 protected:
   typedef MyController __ControllerType;
 public:
-  OATPP_COMPONENT(std::shared_ptr<MyApiClient>, myApiClient);
+  OATPP_COMPONENT(std::shared_ptr<MySecureApiClient>, mySecureApiClient);
 protected:
   MyController(const std::shared_ptr<ObjectMapper>& objectMapper)
     : oatpp::web::server::api::ApiController(objectMapper)
@@ -135,7 +135,7 @@ public:
     ENDPOINT_ASYNC_INIT(TestApiGet)
     
     Action act() override {
-      return controller->myApiClient->apiGetAsync().callbackTo(&TestApiGet::onResponse);
+      return controller->mySecureApiClient->apiGetAsync().callbackTo(&TestApiGet::onResponse);
     }
     
     Action onResponse(const std::shared_ptr<IncomingResponse>& response){
@@ -150,10 +150,7 @@ public:
     
   ENDPOINT_ASYNC("PUT", "/detectObject", DetectObject) {
     /*  curl -X PUT "https://localhost:8443/detectObject" --insecure -T <file name> */
-      
-    MyDictionary myDictionary; //initializing here is not good. 
-    bool saveImage = true; //initializing here is not good. 
-    
+          
     ENDPOINT_ASYNC_INIT(DetectObject)
     
     Action act() override {
@@ -164,13 +161,14 @@ public:
     Action returnResponse(const oatpp::String& jpegData){
         /* return Action to return created OutgoingResponse */
         OATPP_LOGD(TAG, "DetectObject::returnResponse()");
-        if (saveImage) {
+        if (controller->serverConfigObj->saveImage) {
             std::string fileName = IMAGE_FILE_PATH;
             fileName = fileName + "image" + std::to_string(miliSecTime()) + ".jpeg";
             jpegData->saveToFile(fileName.c_str());
             OATPP_LOGD(TAG, "an image data has been stored at %s", fileName.c_str());
         }
         try {
+          auto myDictionary = controller->myDictionary;
           Classifyer *myClassifyer = new Classifyer(&myDictionary);
           myClassifyer -> execute(jpegData->c_str());
           
@@ -207,31 +205,33 @@ public:
             auto response = controller->createDtoResponse(Status::CODE_200, responseDto);
             response->putHeader(Header::CONTENT_TYPE, "application/json");
             return _return(response);
-          
-          //return createDtoResponse(Status::CODE_200, response);
-         
           }
           catch (std::runtime_error e) {
               const char* text = e.what();
-              /*
-              auto response = createResponse(Status::CODE_200, text);
-              response->putHeader(Header::CONTENT_TYPE, "text/plane");
-              return response;
-              */
           }
-        /*
-        const char* text = "OK";
-        auto response = controller->createResponse(Status::CODE_200, text);
-        response->putHeader(Header::CONTENT_TYPE, "text/plane");
-        return _return(response);
-        */
+        }
+    };
+    
+    ENDPOINT_ASYNC("GET", "/testDetectObject", TestDetectObject) {
+    
+    ENDPOINT_ASYNC_INIT(TestDetectObject)
+    
+    Action act() override {
+      oatpp::String binData = "aaaabbbbbbbbbbbbbbbbbbbbbbbbbbb";
+      return controller->mySecureApiClient->apiDetectObjectAsync(binData).callbackTo(&TestDetectObject::onResponse);
+    }
+    
+    Action onResponse(const std::shared_ptr<IncomingResponse>& response){
+      return response->readBodyToStringAsync().callbackTo(&TestDetectObject::returnResult);
+    }
+    
+    Action returnResult(const oatpp::String& body) {
+      return _return(controller->createResponse(Status::CODE_200, body));
     }
     
   };
   
 };
-
-
 
 #include OATPP_CODEGEN_END(ApiController) //<--- End codegen
 
